@@ -1,0 +1,49 @@
+version: 1
+demo_mode: ${COUNCIL_MODE}
+
+spartans:
+  - name: "Hestia"
+    tag: "Tia"
+    model: "qwen2.5:7b"
+    capabilities:
+      allow_mcp: ["filesystem", "git", "http"]
+      deny_mcp: ["shell"]
+  - name: "Apollo"
+    tag: "Olly"
+    model: "mistral:7b"
+    capabilities:
+      allow_mcp: ["filesystem", "git", "shell"]
+      deny_mcp: []
+  - name: "Artemis"
+    tag: "Mira"
+    model: "olmo2:7b"
+    capabilities:
+      allow_mcp: ["http"]
+      deny_mcp: ["shell"]
+
+routing:
+  default: "Tia"
+  rules:
+    - when: "query.tag == 'Olly'"
+      route: "Olly"
+    - when: "query.tag == 'Mira'"
+      route: "Mira"
+
+guardrails:
+  tool_schema_enforced: true
+  max_steps: 12
+  step_timeout_s: 30
+  redact_patterns:
+    - "(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}"
+    - "sk-[A-Za-z0-9]{20,}"
+    - "Bearer\\s+[A-Za-z0-9._-]+"
+
+artifacts:
+  path: "${COUNCIL_DATA_DIR}/artifacts"
+  keep_json_plans: true
+
+demo:
+  sandbox_paths:
+    - "${COUNCIL_DATA_DIR}/demo"
+  rate_limit_per_min: 10
+  mcp_allowlist_only: true

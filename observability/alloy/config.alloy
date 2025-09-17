@@ -1,0 +1,50 @@
+otlp "default" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  http { endpoint = "0.0.0.0:4318" }
+}
+
+loki.write "default" {
+  endpoint { url = "http://loki:3100/loki/api/v1/push" }
+}
+
+discovery.docker "local" {}
+
+promtail.source.docker "containers" {
+  targets = discovery.docker.local.targets
+}
+
+promtail.process "docker_json" {
+  stages = [
+    { json = { expressions = { level = "level", msg = "msg" } } }
+  ]
+}
+
+promtail.stage.pipeline "pipe" {
+  receivers   = [promtail.source.docker.containers]
+  stages      = [promtail.process.docker_json]
+  forward_to  = [loki.write.default.receiver]
+}
+
+otelcol.receiver.otlp "recv" {
+  grpc {}
+  http {}
+}
+
+otelcol.processor.batch "b" {}
+
+otelcol.exporter.otlp "to_tempo" {
+  client {
+    endpoint = "http://tempo:4317"
+    insecure = true
+  }
+}
+
+otelcol.service "traces" {
+  pipelines {
+    traces {
+      receivers  = [otelcol.receiver.otlp.recv]
+      processors = [otelcol.processor.batch.b]
+      exporters  = [otelcol.exporter.otlp.to_tempo]
+    }
+  }
+}

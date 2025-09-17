@@ -1,0 +1,21 @@
+{
+  "title": "Council Home",
+  "schemaVersion": 39,
+  "version": 2,
+  "panels": [
+    { "type": "stat", "title": "Requests (5m)", "id": 1,
+      "targets": [{"expr": "sum(increase(council_requests_total[5m]))"}] },
+    { "type": "stat", "title": "Errors (5m)", "id": 2,
+      "targets": [{"expr": "sum(increase(council_errors_total[5m]))"}] },
+    { "type": "gauge", "title": "p95 Latency (ms)", "id": 3,
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(council_latency_ms_bucket[5m])) by (le))"}] },
+    { "type": "stat", "title": "Tokens In (5m)", "id": 6,
+      "targets": [{"expr": "sum(increase(council_tokens_in_total[5m]))"}] },
+    { "type": "stat", "title": "Tokens Out (5m)", "id": 7,
+      "targets": [{"expr": "sum(increase(council_tokens_out_total[5m]))"}] },
+    { "type": "stat", "title": "Tokens In by Spartan (5m)", "id": 8,
+      "targets": [{"expr": "sum by (spartan)(increase(council_tokens_in_total[5m]))"}] },
+    { "type": "stat", "title": "Tokens Out by Spartan (5m)", "id": 9,
+      "targets": [{"expr": "sum by (spartan)(increase(council_tokens_out_total[5m]))"}] }
+  ]
+}
